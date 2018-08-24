@@ -1,3 +1,7 @@
+import './css/style.css'
+import {TweenLite } from 'gsap/TweenLite';
+import $ from 'jquery';
+import {Circ} from 'gsap/EasePack';
 var width, height, container, canvas, ctx, points, target, animateHeader = true;
 
 function init() {
@@ -245,10 +249,9 @@ findIP(addIP);
 
 //FIND LOCATIOn
 
-
 $.getJSON('https://ipapi.co/'+$(ip).val()+'/json', function(data){
-
-      $('.country').text(data.country);
+      console.log(data);
+      $('.country').text(data.city);
   });
 
 
