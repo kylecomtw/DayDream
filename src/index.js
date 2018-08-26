@@ -1,13 +1,19 @@
 import './css/style.css'
 import $ from 'jquery';
 import DrawDots from './draw_dots.js';
+import DialogueAnimation from './dialogue_animation.js';
 
 DrawDots.init();
 console.log(DrawDots.init);
 
+$(function(){
+  let diag_anim = new DialogueAnimation();
+  diag_anim.init();
+});
 
 (function (window) {
 
+  
   var search_form = document.getElementsByClassName('search__form');
   console.log(search_form);
 
