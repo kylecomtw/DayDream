@@ -2,12 +2,13 @@ import './css/style.css'
 import $ from 'jquery';
 import DrawDots from './draw_dots.js';
 import DialogueAnimation from './dialogue_animation.js';
+import * as DialogueDom from './dialogue_dom_ops';
 
 DrawDots.init();
 console.log(DrawDots.init);
+let diag_anim = new DialogueAnimation();
 
-$(function(){
-  let diag_anim = new DialogueAnimation();
+$(function(){  
   diag_anim.init();
 });
 
@@ -29,19 +30,9 @@ $(function(){
 
     }
 
-    var binder = $('input').val();
-    var terminal_div = document.getElementsByClassName('terminal');
-    $('.terminal').addClass("binding");
+    let diag_elem = DialogueDom.append_dialogue(input_text);
 
-    var commands = document.createElement('p');
-    commands.innerHTML = ('Execute: ' + binder);
-    commands.setAttribute('class', 'terminal__line');
-    $(commands).appendTo(terminal_div);
-
-
-
-
-
+    diag_anim.add_dialogue(diag_elem);
     event.preventDefault();
   });
 
