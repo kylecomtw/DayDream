@@ -56,6 +56,7 @@ body {
 /* Reset Search Input */
 
 .search__input {
+	width: 95%;
 	border: 0;
 	background: transparent;
 	border-radius: 0;
