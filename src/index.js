@@ -8,12 +8,13 @@ import * as SpeechRecog from './speech_api.js';
 DrawDots.init();
 console.log(DrawDots.init);
 let diag_anim = new DialogueAnimation();
-
+let synth = window.speechSynthesis;
 $(function(){  
   diag_anim.init();
 });
 
 (function (window) {
+  
   
   var search_form = document.getElementsByClassName('search__form');
   console.log(search_form);
@@ -29,8 +30,20 @@ $(function(){
     $("input").val(transcript);    
   }
 
+  function speech_end_handler(transcript){
+    $("input").val("--- Stop recognition ---");
+    $("input").submit();
+  }
+
+  function add_to_dialogue(text){
+    let diag_elem = DialogueDom.append_dialogue(text);
+    diag_anim.add_dialogue(diag_elem);
+  }
+
   SpeechRecog.setOnFinalCallback(speech_final_handler);
   SpeechRecog.setOnInterimCallback(speech_interim_handler);
+  SpeechRecog.setOnEndCallback(speech_end_handler);
+
   $(search_form).submit(function (event) {
     event.preventDefault();
     let input_text = $("input").val()
@@ -42,11 +55,22 @@ $(function(){
     } else if ($("input").val() === "listen") {
       console.log("start recognition")
       SpeechRecog.startRecognition(event);
+      let resp = "好的，開始吧！";
+      SpeechRecog.speak(synth, resp, "zh-TW");
+      add_to_dialogue(resp);      
+    } else if ($("input").val() === "listen English") {
+      console.log("start recognition")
+      SpeechRecog.startRecognition(event, "en-US");
+      let resp = "OK, go ahead";
+      SpeechRecog.speak(synth, resp, "en-US");
+      add_to_dialogue(resp)      
+    } else if ($("input").val() === "clear") {
+      $(".terminal__line").remove();
+    } else {
+      add_to_dialogue(input_text);      
+      
     }
-
-    let diag_elem = DialogueDom.append_dialogue(input_text);
-
-    diag_anim.add_dialogue(diag_elem);
+        
     $("input").val("");
   });
 

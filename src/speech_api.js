@@ -69,11 +69,14 @@ var langs =
 showInfo('info_start');
 
 var final_transcript = '';
+var final_index = -1;
 var recognizing = false;
+var end_from_command = false;
 var ignore_onend;
 var start_timestamp;
 var on_final_callback = function(transcript){};
 var on_interim_callback = function(transcript){};
+var on_end_callback = function(){};
 if (!('webkitSpeechRecognition' in window)) {
   console.log("Cannot find webkitSpeechRecognition");
 } else {  
@@ -89,7 +92,7 @@ if (!('webkitSpeechRecognition' in window)) {
     if (event.error == 'no-speech') {
       // start_img.src = 'mic.gif';
       showInfo('info_no_speech');
-      ignore_onend = true;
+      ignore_onend = false;
     }
     if (event.error == 'audio-capture') {
       // start_img.src = 'mic.gif';
@@ -104,56 +107,68 @@ if (!('webkitSpeechRecognition' in window)) {
       }
       ignore_onend = true;
     }
+    console.log("uncaught error");
+    console.log(event);
   };
   recognition.onend = function () {
     recognizing = false;
+    final_index = -1;
     if (ignore_onend) {
       return;
     }
-
-    showInfo("info_recog_end");
-    showInfo('');
-    if (false && window.getSelection) {
-      window.getSelection().removeAllRanges();
-      var range = document.createRange();
-      range.selectNode(document.getElementById('final_span'));
-      window.getSelection().addRange(range);
+        
+    if (end_from_command) {
+      end_from_command = false;
+      showInfo("info_recog_end");  
+      on_end_callback();
+    } else {
+      showInfo("info_recog_restart");
+      startRecognition({timestamp: Date.now()});      
     }
+    
+    
   };
-  recognition.onresult = function (event) {
-    var interim_transcript = '';
+  recognition.onresult = function (event) {   
+    let interim_transcript = "";
     if (event.results.length == 0) {
       return;
     }
-
+    
+    // console.log(event.results);
     let latestResult = event.results[event.results.length-1];    
     if (latestResult.isFinal) {      
       final_transcript = latestResult[0].transcript;
+      interim_transcript = "";
+      final_index = event.results.length - 1;
       on_final_callback(final_transcript);        
-      console.log("final_script:" + final_transcript);
-    } else {
-      interim_transcript = latestResult[0].transcript;
-      on_interim_callback(interim_transcript);
-      console.log("interim_script:" + interim_transcript);
+      // console.log("final_script:" + final_transcript);
+    } else {      
+      for (let i=final_index+1; i<event.results.length; ++i){
+        interim_transcript += event.results[i][0].transcript;      
+      }
+      on_interim_callback(interim_transcript);      
+      // console.log("interim_script:" + interim_transcript);
     }
                
   };
 }
 
-export function stopRecognition(){
+export function stopRecognition(){  
   if (recognizing) {
+    end_from_command = true;
     recognition.stop();
     return;
   }
 }
 
-export function startRecognition(event) {
+export function startRecognition(event, lang) {
   if (recognizing) {
     recognition.stop();
     return;
   }
   final_transcript = '';
-  recognition.lang = 'cmn-Hant-TW';
+  if(!lang) lang = 'cmn-Hant-TW';  
+  recognition.lang = lang;
   recognition.start();
   ignore_onend = false;  
   // start_img.src = 'mic-slash.gif';
@@ -171,4 +186,24 @@ export function setOnFinalCallback(func){
 
 export function setOnInterimCallback(func){
   on_interim_callback = func;
+}
+
+export function setOnEndCallback(func){
+  on_end_callback = func;
+}
+
+export function speak(synth, text, lang){
+  if (!lang) lang="zh-TW";  
+  let voices = synth.getVoices();
+  
+  voices = voices.filter((x)=>
+    x.name.match(/^Google/) && x.lang==lang);
+  
+  if (voices.length == 0){
+    console.log("No voice found");
+  }
+
+  let utter = new SpeechSynthesisUtterance(text);
+  utter.voice = voices[0];  
+  synth.speak(utter);
 }

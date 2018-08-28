@@ -43,7 +43,7 @@ export default class DialogueAnimation{
       }
     }
     
-    return text.length + counter*1.5;
+    return text.length + counter*2;
 
   }
 }
