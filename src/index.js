@@ -8,6 +8,8 @@ import * as Parsing from './input_parsing.js';
 
 DrawDots.init();
 console.log(DrawDots.init);
+let backbase_url = config_backend_url || 
+              "https://lope.linguistics.ntu.edu.tw:9091/sketchpad/";
 let diag_anim = new DialogueAnimation();
 let synth = window.speechSynthesis;
 let input_queue = [];
@@ -17,12 +19,19 @@ $(function(){
 
 
 function add_to_dialogue(text){
-  let diag_elem = DialogueDom.append_dialogue(text);
-  diag_anim.add_dialogue(diag_elem);
+  for(let i=0; i < text.length; i+=30){    
+    let diag_elem = DialogueDom.append_dialogue(text.slice(i, i+30));
+    diag_anim.add_dialogue(diag_elem);
+  }
 }
 
 (function(){
+  $.ajax({
+    method: "delete", 
+    url: backbase_url + "/memory", 
+    success: function(x){console.log(x);}});
   let is_job_running = false;
+  let req_timestamp = Date.now();
   let pre_resp = (x) =>{
     console.log("preresponse text");
   };
@@ -44,11 +53,13 @@ function add_to_dialogue(text){
     if(input_queue.length > 0){
       let input_text = input_queue.join(",");
       input_queue = [];
-      is_job_running = true;      
-      Parsing.parseText(input_text, pre_resp, post_resp);      
+      is_job_running = true; 
+      setTimeout(()=>{
+        Parsing.parseText(input_text, pre_resp, post_resp);
+      }, Math.max(0, 5000-(Date.now()-req_timestamp)))
     }
     
-  }, 1000);
+  }, 3000);
 })();
 
 (function (window) {
@@ -97,6 +108,7 @@ function add_to_dialogue(text){
     } else if ($("input").val() === "clear") {
       $(".terminal__line").remove();
       input_queue = [];
+      is_job_running = false;
     } else {           
       add_to_dialogue(input_text);
       input_queue.push(input_text);

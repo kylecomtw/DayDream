@@ -1,5 +1,5 @@
 import $ from 'jquery';
-let back_url = "https://lope.linguistics.ntu.edu.tw:9091/sketchpad/wander"
+let back_url = config_backend_url + "/wander" || "https://lope.linguistics.ntu.edu.tw:9091/sketchpad/wander";
 export function parseText(text, pre_resp_func, post_resp_func){
   pre_resp_func();
   console.log("parseText: " + text);

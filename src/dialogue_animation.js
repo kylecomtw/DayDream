@@ -22,7 +22,7 @@ export default class DialogueAnimation{
   create_dialogue_tween(diag_elem){
 
     let n_char = this.get_chwidth(diag_elem.textContent);
-    let duration = n_char / 20;
+    let duration = n_char / 40;
     let width_tween = TweenMax.fromTo(diag_elem, duration, 
         {width: 0}, {width: n_char + "ch", ease: Linear.easeNone});
     let height_tween = TweenMax.fromTo(diag_elem, 0.1, 
