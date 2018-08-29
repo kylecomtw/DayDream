@@ -4,24 +4,59 @@ import DrawDots from './draw_dots.js';
 import DialogueAnimation from './dialogue_animation.js';
 import * as DialogueDom from './dialogue_dom_ops';
 import * as SpeechRecog from './speech_api.js';
+import * as Parsing from './input_parsing.js';
 
 DrawDots.init();
 console.log(DrawDots.init);
 let diag_anim = new DialogueAnimation();
 let synth = window.speechSynthesis;
+let input_queue = [];
 $(function(){  
   diag_anim.init();
 });
+
+
+function add_to_dialogue(text){
+  let diag_elem = DialogueDom.append_dialogue(text);
+  diag_anim.add_dialogue(diag_elem);
+}
+
+(function(){
+  let is_job_running = false;
+  let pre_resp = (x) =>{
+    console.log("preresponse text");
+  };
+
+  let post_resp = (resp_obj) => {
+    if(resp_obj.responseText){
+      is_job_running = false;
+      add_to_dialogue(resp_obj.responseText);
+    }
+  }
+  
+  setInterval(function(){
+    if (is_job_running){
+      console.log("Parsing job is still running");
+      return;
+    }
+
+    if(input_queue.length > 0){
+      let input_text = input_queue.join(",");
+      input_queue = [];
+      is_job_running = true;      
+      Parsing.parseText(input_text, pre_resp, post_resp);      
+    }
+    
+  }, 1000);
+})();
 
 (function (window) {
   
   
   var search_form = document.getElementsByClassName('search__form');
   console.log(search_form);
-
-  var navigationLink = $('.terminal__line a');
   
-  function speech_final_handler(transcript){
+  function speech_final_handler(transcript){    
     $("input").val(transcript);
     $("input").submit();
   }
@@ -31,13 +66,7 @@ $(function(){
   }
 
   function speech_end_handler(transcript){
-    $("input").val("--- Stop recognition ---");
-    $("input").submit();
-  }
-
-  function add_to_dialogue(text){
-    let diag_elem = DialogueDom.append_dialogue(text);
-    diag_anim.add_dialogue(diag_elem);
+    add_to_dialogue("--- Stop recognition ---");    
   }
 
   SpeechRecog.setOnFinalCallback(speech_final_handler);
@@ -66,9 +95,9 @@ $(function(){
       add_to_dialogue(resp)      
     } else if ($("input").val() === "clear") {
       $(".terminal__line").remove();
-    } else {
-      add_to_dialogue(input_text);      
-      
+    } else {           
+      add_to_dialogue(input_text);
+      input_queue.push(input_text);
     }
         
     $("input").val("");
