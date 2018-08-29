@@ -13,6 +13,7 @@ let backbase_url = config_backend_url ||
 let diag_anim = new DialogueAnimation();
 let synth = window.speechSynthesis;
 let input_queue = [];
+let is_job_running = false;
 $(function(){  
   diag_anim.init();
 });
@@ -30,7 +31,6 @@ function add_to_dialogue(text){
     method: "delete", 
     url: backbase_url + "/memory", 
     success: function(x){console.log(x);}});
-  let is_job_running = false;
   let req_timestamp = Date.now();
   let pre_resp = (x) =>{
     console.log("preresponse text");
