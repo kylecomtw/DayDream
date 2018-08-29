@@ -31,6 +31,7 @@ function add_to_dialogue(text){
     if(resp_obj.responseText){
       is_job_running = false;
       add_to_dialogue(resp_obj.responseText);
+      input_queue.push(resp_obj.reqponseText);
     }
   }
   
@@ -95,6 +96,7 @@ function add_to_dialogue(text){
       add_to_dialogue(resp)      
     } else if ($("input").val() === "clear") {
       $(".terminal__line").remove();
+      input_queue = [];
     } else {           
       add_to_dialogue(input_text);
       input_queue.push(input_text);
