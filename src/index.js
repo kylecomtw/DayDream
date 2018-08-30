@@ -32,6 +32,7 @@ function add_to_dialogue(text){
     url: backbase_url + "/memory", 
     success: function(x){console.log(x);}});
   let req_timestamp = Date.now();
+  let n_request = 0;
   let pre_resp = (x) =>{
     console.log("preresponse text");
   };
@@ -44,7 +45,7 @@ function add_to_dialogue(text){
     }
   }
   
-  setInterval(function(){
+  let parse_callback = setInterval(function(){
     if (is_job_running){
       console.log("Parsing job is still running");
       return;
@@ -53,8 +54,13 @@ function add_to_dialogue(text){
     if(input_queue.length > 0){
       let input_text = input_queue.join(",");
       input_queue = [];
-      is_job_running = true; 
+      is_job_running = true;       
+      if (n_request > 5){
+        console.log("cancel parse request");
+        clearInterval(parse_callback);
+      }
       setTimeout(()=>{
+        n_request += 1
         Parsing.parseText(input_text, pre_resp, post_resp);
       }, Math.max(0, 5000-(Date.now()-req_timestamp)))
     }
